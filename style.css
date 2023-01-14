@@ -1,0 +1,70 @@
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+}
+
+#main-body {
+    background-color: grey;
+    max-width: 900px;
+    width: 100%;
+    height: -webkit-calc(100% - 80px);
+    height: -moz-calc(100% - 80px);
+    height: calc(100% - 80px);
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 2fr;
+    grid-gap: 5px;
+}
+
+#conversations {
+    background-color: white;
+    grid-column-start: 1;
+    grid-column-end: 1;
+    grid-row-start: 1;
+    grid-row-end: 2;
+}
+
+/* Chat strucutre === */
+#chat {
+    display: grid;
+    grid-template-rows: 1fr 7fr 1fr;
+    grid-template-columns: 1fr;
+}
+
+#chat-header {
+    background-color: red;
+    grid-column-start: 1;
+    grid-column-end: 1;
+    grid-row-start: 1;
+    grid-row-end: 2;
+}
+
+#chat-conversation {
+    background-color: blue;
+    grid-column-start: 1;
+    grid-column-end: 1;
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+#chat-chatbox {
+    background-color: green;
+    grid-column-start: 1;
+    grid-column-end: 1;
+    grid-row-start: 3;
+    grid-row-end: 4;
+}
+
+/* Chat box strucutre */
+#text-input {
+
+}
