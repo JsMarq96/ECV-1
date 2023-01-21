@@ -6,6 +6,22 @@
 <body>
   <div id="main-body">
     <div id="conversations">
+
+      <div class="conversation-selector">
+        <p> Select a conversation or create one </p>
+        <div class="horizontal-align">
+          <div class="vertical-align">
+            <input id="new-conversation-id" placeholder=" New conversation name" />
+            <select id="select-conversation-id" >
+              <option value="Test">Test</option>
+              <option value="Test2">Test2</option>
+              <option value="Barcelona">Barcelona</option>
+            </select>
+          </div>
+          <button id="launch-conversation"> Start </button>
+        </div>
+      </div>
+
       <div class="conversation-item">
         <p>User</p>
         <div class="conversation-separator"></div>
@@ -14,6 +30,7 @@
         <p>User</p>
         <div class="conversation-separator"></div>
       </div>
+
 
     </div>
     <div id="chat">
@@ -44,7 +61,7 @@
 
       </div>
       <div id="chat-chatbox">
-        <input id="text-input"/>
+        <input id="text-input" placeholder=" Type message here"/>
         <div id="send-button-container">
           <button id="send-button">Send</button>
         </div>

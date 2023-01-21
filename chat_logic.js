@@ -4,10 +4,9 @@ var CHAT = {
 
   current_user: "Juan",
 
-  init: function() {
-    this.message_box = document.getElementById('chat-conversation');
-  },
-
+  // ===================================
+  // MESSAGING FUNCTIONS
+  // ===================================
   add_message: function (sender_name, message) {
     var bubble_class = "message-to-user"
     if (sender_name.localeCompare(CHAT.current_user) == 0) {
@@ -42,7 +41,22 @@ var CHAT = {
   },
 
   send_button_onclick: function (event) {
-    var text_input = document.getElementById('text-input');
+    if (event.code == 'Enter') {
+      CHAT.add_message(CHAT.current_user, CHAT.text_input.value);
+      CHAT.text_input.value = "";
+    }
+  },
 
-  }
+
+  // ===================================
+  // CONVERSATION FUNCTIONS
+  // ===================================
+
+  init: function() {
+    this.message_box = document.getElementById('chat-conversation');
+    this.text_input = document.getElementById('text-input');
+
+    this.text_input.addEventListener('keydown', CHAT.send_button_onclick);
+  },
+
 };
