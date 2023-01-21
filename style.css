@@ -32,12 +32,11 @@ body {
 
 #conversations {
     background-color: #94a1b2;
-    grid-column-start: 1;
-    grid-column-end: 1;
-    grid-row-start: 1;
-    grid-row-end: 2;
     border-radius: 5px;
     border-top-left-radius: 5px;
+    height: 100%;
+    padding-top: 5px;
+    overflow-y: auto;
 }
 
 /* Chat strucutre === */
@@ -141,4 +140,28 @@ body {
 .message-from-user p {
     text-align: right;
     padding-right: 5px;
+}
+
+
+/* Conversation strucutre =========== */
+.conversation-item {
+    text-align: center;
+    width: 100%;
+    height: 50px;
+    display:flex;
+    flex-direction: column;
+}
+
+.conversation-item p {
+    margin: auto;
+    text-align: center;
+}
+
+.conversation-separator {
+    background-color: #707985;
+    width: 70%;
+    height: 3px;
+    margin-top: auto;
+    margin-bottom: 0px;
+    margin: auto;
 }

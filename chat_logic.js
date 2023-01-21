@@ -1,5 +1,7 @@
 var CHAT = {
 
+  chat_history: [],
+
   current_user: "Juan",
 
   init: function() {
@@ -32,6 +34,8 @@ var CHAT = {
     message_buble.appendChild(sender_paragraph);
     message_buble.appendChild(text_paragraph);
     message_main.appendChild(message_buble);
+
+     this.chat_history = this.chat_history.concat({'from': sender_name, 'message': message});
 
     this.message_box.appendChild(message_main);
     this.message_box.scrollTop = 100000;
