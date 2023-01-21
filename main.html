@@ -1,5 +1,6 @@
 <head>
   <link href="style.css" rel="stylesheet" />
+   <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
@@ -7,7 +8,7 @@
     <div id="conversations"></div>
     <div id="chat">
       <div id="chat-header">
-        User
+        <p id="chat-title">User</p>
       </div>
       <div id="chat-conversation">
         <div class="message-container">
@@ -31,9 +32,6 @@
           </div>
         </div>
 
-
-
-
       </div>
       <div id="chat-chatbox">
         <input id="text-input"/>
@@ -44,7 +42,8 @@
     </div>
   </div>
 
-  <script src="chat_logic.js">
+  <script src="chat_logic.js"></script>
+  <script>
     CHAT.init();
   </script>
 </body>

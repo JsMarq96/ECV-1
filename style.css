@@ -1,6 +1,7 @@
 * {
     margin: 0px;
     padding: 0px;
+    font-family: Roboto;
 }
 
 body {
@@ -9,7 +10,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: black;
+    background-color: #222226;
 }
 
 #main-body {
@@ -23,46 +24,58 @@ body {
     grid-template-rows: 1fr;
     grid-template-columns: 1fr 2fr;
     grid-gap: 5px;
+    border-radius: 5px;
+    border-style: solid;
+    border-width: 5px;
+    border-color: grey;
 }
 
 #conversations {
-    background-color: white;
+    background-color: #94a1b2;
     grid-column-start: 1;
     grid-column-end: 1;
     grid-row-start: 1;
     grid-row-end: 2;
+    border-radius: 5px;
+    border-top-left-radius: 5px;
 }
 
 /* Chat strucutre === */
 #chat {
-    display: grid;
-    grid-template-rows: 1fr 7fr 1fr;
-    grid-template-columns: 1fr;
+    width: 100%;
+    height: 100%;
 }
 
 #chat-header {
-    background-color: red;
-    grid-column-start: 1;
-    grid-column-end: 1;
-    grid-row-start: 1;
-    grid-row-end: 2;
+    background-color: #7f5af0;
+    height: 10%;
+    min-height: 70px;
+    border-radius: 5px;
+    font-size: 30px;
+    padding-left: 20px;
+}
+
+#chat-header p {
+    padding: 25px;
 }
 
 #chat-conversation {
-    background-color: blue;
-    grid-column-start: 1;
-    grid-column-end: 1;
-    grid-row-start: 2;
-    grid-row-end: 3;
+    background-color: ##abafba;
+    height: 80%;
+    max-height: 650px;
+    overflow-y: auto;
 }
 
 #chat-chatbox {
-    background-color: green;
+    background-color: #72757e;
     grid-column-start: 1;
     grid-column-end: 1;
     grid-row-start: 3;
     grid-row-end: 4;
     display: flex;
+    height: 10%;
+    min-height: 70px;
+    border-radius: 5px;
 }
 
 /* Chat box strucutre */
@@ -71,11 +84,14 @@ body {
 
     width: calc(100% - 90px);
     height: calc(100% - 20px);
+    border-radius: 5px;
+    border-style: solid;
 }
 
 #send-button-container {
     width: 90px;
     height: 100%;
+    overflow-y: auto;
 }
 
 #send-button-container button {
@@ -117,7 +133,9 @@ body {
 }
 
 .message-from-user {
-    background-color: greenyellow;
+    background-color: #2cb67d;
+    margin-left: auto;
+    margin-right: 0;
 }
 
 .message-from-user p {

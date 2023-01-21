@@ -2,6 +2,10 @@ var CHAT = {
 
   current_user: "Juan",
 
+  init: function() {
+    this.message_box = document.getElementById('chat-conversation');
+  },
+
   add_message: function (sender_name, message) {
     var bubble_class = "message-to-user"
     if (sender_name.localeCompare(CHAT.current_user) == 0) {
@@ -29,7 +33,8 @@ var CHAT = {
     message_buble.appendChild(text_paragraph);
     message_main.appendChild(message_buble);
 
-    document.getElementById('chat-conversation').appendChild(message_main);
+    this.message_box.appendChild(message_main);
+    this.message_box.scrollTop = 100000;
   },
 
   send_button_onclick: function (event) {
