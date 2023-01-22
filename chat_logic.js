@@ -13,7 +13,7 @@ var CHAT = {
   // ===================================
   add_message: function (sender_name, message) {
     var bubble_class = "message-to-user"
-    if (sender_name.localeCompare(CHAT.current_user) == 0) {
+    if (sender_name.localeCompare(CHAT.user_name) == 0) {
       bubble_class = "message-from-user";
     }
     
@@ -42,6 +42,25 @@ var CHAT = {
     this.message_box.scrollTop = 100000;
   },
 
+  add_join_notification(name, is_disconected) {
+    var main_div = document.createElement('div');
+    main_div.classList.add('message-container');
+
+    var sub_div = document.createElement('div');
+    sub_div.classList.add('message-join');
+
+    if (is_disconected) {
+      sub_div.innerHTML = name + ' disconected';
+    } else {
+      sub_div.innerHTML = name + ' connected';
+    }
+
+    main_div.appendChild(sub_div);
+
+    this.message_box.appendChild(main_div);
+    this.message_box.scrollTop = 100000;
+  },
+
   send_message: function () {
     var msg = {};
     msg.type = 'text';
@@ -49,10 +68,10 @@ var CHAT = {
     msg.content = CHAT.text_input.value;
 
     CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg));
-    CHAT.add_message(CHAT.current_user, CHAT.text_input.value);
+    CHAT.add_message(CHAT.user_name, CHAT.text_input.value);
     CHAT.text_input.value = "";
 
-    CHAT.chat_history[CHAT.current_conversation].push(msg);
+    CHAT.chat_history[CHAT.current_conversation] = CHAT.chat_history[CHAT.current_conversation].concat(msg);
   },
 
   send_button_onclick: function (event) {
@@ -81,23 +100,60 @@ var CHAT = {
   server_on_room_info: function(server_index, info) {
     console.log("Room info ", info);
 
+    if (info.clients.length > 1) {
+      var msg = {};
+      msg.type = 'history-request';
+      msg.username = self.current_user;
+
+      msg = JSON.stringify(msg);
+      for(var i = 0; i < info.clients.length; i++) {
+        if (CHAT.current_user.localeCompare(info.clients[i]) == 0) {
+          continue;
+        }
+
+        CHAT.server_connections[CHAT.current_conversation].sendMessage(msg, [info.clients[i]]);
+        break;
+      }
+    }
+
   },
 
   server_on_user_connect: function(server_index, user_id) {
+    this.add_join_notification(user_id, false);
     console.log("User connected", user_id);
 
   },
 
   server_on_user_disconnect: function(server_index, user_id) {
+    this.add_join_notification(user_id, true);
     console.log("User disconnected", user_id);
 
   },
 
   server_on_message: function(server_index, author_id, message) {
     var msg = JSON.parse(message);
-    this.add_message(author_id, msg.content);
-    this.chat_history[this.current_conversation].push(msg);
-    console.log("Message", author_id, message)
+    if (msg.type.localeCompare('text') == 0) {
+      this.add_message(msg.username, msg.content);
+      this.chat_history[this.current_conversation].push(msg);
+
+    } else if (msg.type.localeCompare('history-request') == 0) {
+      var history_msg = {};
+      history_msg.type = 'history';
+      history_msg.content = this.chat_history[CHAT.current_conversation];
+
+      CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(history_msg));
+
+    } else if (msg.type.localeCompare('history') == 0) {
+      var history = msg.content;
+      console.log(" history ==== ");
+      this.chat_history[this.current_conversation] = history;
+      for(var i = 0; i < history.length; i++) {
+        this.add_message(history[i].username, history[i].content);
+      }
+
+    }
+
+    console.log("Message recibed", author_id, message, msg);
   },
 
   server_on_close: function(server_index) {
@@ -131,6 +187,7 @@ var CHAT = {
     };
 
     this.server_connections[server_name] = server_connection;
+    this.user_name = this.username_input.value;
   },
 
   // ===================================
@@ -145,8 +202,10 @@ var CHAT = {
     this.message_box = document.getElementById('chat-conversation');
     this.text_input = document.getElementById('text-input');
     this.new_conversation_input = document.getElementById('new-conversation-id');
+    this.username_input = document.getElementById('username-input');
 
     this.text_input.addEventListener('keydown', CHAT.send_button_onclick);
+    document.getElementById('send-button').onclick = this.send_message;
     document.getElementById('launch-conversation').onclick = this.ui_add_conversation;
   },
 };
