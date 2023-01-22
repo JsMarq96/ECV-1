@@ -80,11 +80,46 @@ var CHAT = {
     }
   },
 
+  clean_chatbox: function() {
+    this.message_box.innerHTML = '';
+  },
+
 
   // ===================================
   // CONVERSATION FUNCTIONS
   // ===================================
 
+  add_conversation: function(name) {
+    var main_div = document.createElement('div');
+    main_div.classList.add('conversation-item');
+
+    var paragraph = document.createElement('p');
+    paragraph.innerHTML = name;
+
+    var separator = document.createElement('div');
+    separator.classList.add('conversation-separator');
+
+    main_div.appendChild(paragraph);
+    main_div.appendChild(separator);
+
+    main_div.onclick = function(event) {
+      CHAT.change_conversation(name);
+    };
+
+    this.conversation_box.appendChild(main_div);
+  },
+
+  change_conversation: function(conversation_id) {
+    CHAT.clean_chatbox();
+
+    CHAT.current_conversation = conversation_id;
+    CHAT.chat_title.innerHTML = conversation_id;
+
+    const history = CHAT.chat_history[CHAT.current_conversation];
+    for(var i = 0; i < history.length; i++) {
+      CHAT.add_message(history[i].username, history[i].content);
+    }
+  },
 
   // ===================================
   // SERVER EVENTS
@@ -92,13 +127,15 @@ var CHAT = {
 
   server_on_ready: function(server_index, id){
     this.chat_history[server_index] = [];
-    console.log("Server ready", id);
+    console.log("Server ready", id, server_index);
     this.current_conversation = server_index;
     this.current_user = id;
   },
 
   server_on_room_info: function(server_index, info) {
     console.log("Room info ", info);
+
+    CHAT.clean_chatbox();
 
     if (info.clients.length > 1) {
       var msg = {};
@@ -116,15 +153,26 @@ var CHAT = {
       }
     }
 
+    CHAT.add_conversation(this.current_conversation);
+    // Show the conversation box
+    CHAT.chat_area.style.display = 'block';
+    CHAT.chat_title.innerHTML = this.current_conversation;
   },
 
   server_on_user_connect: function(server_index, user_id) {
+    if (server_index.localeCompare(this.current_conversation) != 0) {
+      return;
+    }
     this.add_join_notification(user_id, false);
     console.log("User connected", user_id);
 
   },
 
   server_on_user_disconnect: function(server_index, user_id) {
+    if (server_index.localeCompare(this.current_conversation) != 0) {
+      return;
+    }
+
     this.add_join_notification(user_id, true);
     console.log("User disconnected", user_id);
 
@@ -132,25 +180,34 @@ var CHAT = {
 
   server_on_message: function(server_index, author_id, message) {
     var msg = JSON.parse(message);
+
+    const on_this_conversation = server_index === this.current_conversation;
+    console.log(server_index, this.current_conversation, on_this_conversation, "======");
+
     if (msg.type.localeCompare('text') == 0) {
-      this.add_message(msg.username, msg.content);
-      this.chat_history[this.current_conversation].push(msg);
+      this.chat_history[server_index].push(msg);
+
+      if (on_this_conversation) {
+        this.add_message(msg.username, msg.content);
+      }
 
     } else if (msg.type.localeCompare('history-request') == 0) {
       var history_msg = {};
       history_msg.type = 'history';
-      history_msg.content = this.chat_history[CHAT.current_conversation];
+      history_msg.content = this.chat_history[server_index];
 
-      CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(history_msg));
+      this.server_connections[server_index].sendMessage(JSON.stringify(history_msg));
 
     } else if (msg.type.localeCompare('history') == 0) {
       var history = msg.content;
-      console.log(" history ==== ");
-      this.chat_history[this.current_conversation] = history;
-      for(var i = 0; i < history.length; i++) {
-        this.add_message(history[i].username, history[i].content);
-      }
 
+      this.chat_history[server_index] = history;
+
+      if (on_this_conversation) {
+        for(var i = 0; i < history.length; i++) {
+          this.add_message(history[i].username, history[i].content);
+        }
+      }
     }
 
     console.log("Message recibed", author_id, message, msg);
@@ -199,10 +256,13 @@ var CHAT = {
   },
 
   init: function() {
+    this.chat_area = document.getElementById('chat');
+    this.chat_title = document.getElementById('chat-title');
     this.message_box = document.getElementById('chat-conversation');
     this.text_input = document.getElementById('text-input');
     this.new_conversation_input = document.getElementById('new-conversation-id');
     this.username_input = document.getElementById('username-input');
+    this.conversation_box = document.getElementById('conversations');
 
     this.text_input.addEventListener('keydown', CHAT.send_button_onclick);
     document.getElementById('send-button').onclick = this.send_message;
