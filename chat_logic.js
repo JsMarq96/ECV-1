@@ -7,10 +7,12 @@ var CHAT = {
   chat_room_prefix: "_jsm_chatroom_prefix",
   current_conversation: null,
   server_connections: {},
+  if_is_private: {},
 
   // ===================================
   // CLIENT MESSAGING FUNCTIONS
   // ===================================
+
   add_message: function (sender_name, message) {
     var bubble_class = "message-to-user"
     if (sender_name.localeCompare(CHAT.user_name) == 0) {
@@ -42,6 +44,8 @@ var CHAT = {
     this.message_box.scrollTop = 100000;
   },
 
+
+
   add_join_notification(name, is_disconected) {
     var main_div = document.createElement('div');
     main_div.classList.add('message-container');
@@ -61,24 +65,34 @@ var CHAT = {
     this.message_box.scrollTop = 100000;
   },
 
+
+
   send_message: function () {
     var msg = {};
     msg.type = 'text';
     msg.username = CHAT.user_name;
     msg.content = CHAT.text_input.value;
 
-    CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg));
+    if (!CHAT.if_is_private[CHAT.current_conversation].private) {
+      CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg));
+    } else {
+      CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg), [CHAT.if_is_private[CHAT.current_conversation.id]]);
+    }
     CHAT.add_message(CHAT.user_name, CHAT.text_input.value);
     CHAT.text_input.value = "";
 
     CHAT.chat_history[CHAT.current_conversation] = CHAT.chat_history[CHAT.current_conversation].concat(msg);
   },
 
+
+
   send_button_onclick: function (event) {
     if (event.code == 'Enter') {
       CHAT.send_message();
     }
   },
+
+
 
   clean_chatbox: function() {
     this.message_box.innerHTML = '';
@@ -88,8 +102,29 @@ var CHAT = {
   // ===================================
   // CONVERSATION FUNCTIONS
   // ===================================
+  create_private_conversation: function(username, user_id) {
+    var room_id = 'private_room';
+    // Deterministic chatroom name
+    if (username[0] > CHAT.user_name[0]) {
+      room_id += username + '_' + CHAT.user_name + CHAT.chat_room_prefix;
+    } else {
+      room_id += CHAT.user_name + '_' + username + CHAT.chat_room_prefix;
+    }
+    var msg = {};
+    msg.type = 'private_chat';
+    msg.username = CHAT.current_user;
+    msg.content = room_id;
+    msg = JSON.stringify(msg);
+
+    // Send the channel data to the other user
+    CHAT.server_connections[CHAT.current_conversation].sendMessage(msg, [user_id]);
+  },
+
+
 
   add_conversation: function(name) {
+    this.if_is_private[name] = {'private': false};
+    // Just create structure and add it to the DOM
     var main_div = document.createElement('div');
     main_div.classList.add('conversation-item');
 
@@ -109,9 +144,11 @@ var CHAT = {
     this.conversation_box.appendChild(main_div);
   },
 
-  change_conversation: function(conversation_id) {
-    CHAT.clean_chatbox();
 
+
+  change_conversation: function(conversation_id) {
+    // Clean conversation
+    CHAT.clean_chatbox();
     CHAT.current_conversation = conversation_id;
     CHAT.chat_title.innerHTML = conversation_id;
 
@@ -130,7 +167,30 @@ var CHAT = {
     console.log("Server ready", id, server_index);
     this.current_conversation = server_index;
     this.current_user = id;
+    this.if_is_private[server_index] = {};
+    this.if_is_private[server_index].private = false;
   },
+
+
+
+  private_server_on_ready: function(server_index, id, recipient_user_id, conversation_id, room_id) {
+    var msg = {};
+    msg.type = 'private_chat';
+    msg.username = CHAT.current_user;
+    msg.content = room_id;
+    msg = JSON.stringify(msg);
+
+    // Send the channel data to the other user
+    CHAT.server_connections[conversation_id].sendMessage(msg, [recipient_user_id]);
+
+
+    this.server_on_ready(server_index, id);
+    this.if_is_private[server_index] = {};
+    this.if_is_private[server_index].private = true;
+    this.if_is_private[server_index].id = recipient_user_id;
+  },
+
+
 
   server_on_room_info: function(server_index, info) {
     console.log("Room info ", info);
@@ -152,12 +212,13 @@ var CHAT = {
         break;
       }
     }
-
     CHAT.add_conversation(this.current_conversation);
     // Show the conversation box
     CHAT.chat_area.style.display = 'block';
     CHAT.chat_title.innerHTML = this.current_conversation;
   },
+
+
 
   server_on_user_connect: function(server_index, user_id) {
     if (server_index.localeCompare(this.current_conversation) != 0) {
@@ -168,6 +229,8 @@ var CHAT = {
 
   },
 
+
+
   server_on_user_disconnect: function(server_index, user_id) {
     if (server_index.localeCompare(this.current_conversation) != 0) {
       return;
@@ -177,6 +240,8 @@ var CHAT = {
     console.log("User disconnected", user_id);
 
   },
+
+
 
   server_on_message: function(server_index, author_id, message) {
     var msg = JSON.parse(message);
@@ -209,24 +274,38 @@ var CHAT = {
         }
       }
     }
-
     console.log("Message recibed", author_id, message, msg);
   },
+
+
 
   server_on_close: function(server_index) {
 
   },
 
-  add_a_connection: function(server_name) {
-    var server_connection = new SillyClient();
-    server_connection.connect("wss://ecv-etic.upf.edu/node/9000/ws", server_name + this.chat_room_prefix);
 
-    server_connection.on_connect = function() {
-      CHAT.server_on_ready(server_name);
-    };
-    server_connection.on_ready = function(id) {
-      CHAT.server_on_ready(server_name, id);
-    };
+
+  add_a_connection: function(server_name, is_private=false, recipient_user_id='', conversation_id='') {
+    var server_connection = new SillyClient();
+    var room_id = '';
+
+    if (!is_private) {
+      room_id = server_name + this.chat_room_prefix;
+    } else {
+      room_id = 'private_room_' + server_name + this.chat_room_prefix;
+    }
+
+    server_connection.connect("wss://ecv-etic.upf.edu/node/9000/ws", room_id);
+
+    if (!is_private) {
+       server_connection.on_ready = function(id) {
+         CHAT.server_on_ready(server_name, id);
+       };
+    } else {
+       server_connection.on_ready = function(id) {
+         CHAT.private_server_on_ready(server_name, id, recipient_user_id, conversation_id, room_id);
+       };
+    }
     server_connection.on_room_info = function(info) {
       CHAT.server_on_room_info(server_name, info);
     };
@@ -247,6 +326,8 @@ var CHAT = {
     this.user_name = this.username_input.value;
   },
 
+
+
   // ===================================
   // UI EVENTS
   // ===================================
@@ -254,6 +335,8 @@ var CHAT = {
   ui_add_conversation: function(event) {
     CHAT.add_a_connection(CHAT.new_conversation_input.value);
   },
+
+
 
   init: function() {
     this.chat_area = document.getElementById('chat');
