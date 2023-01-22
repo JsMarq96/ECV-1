@@ -13,7 +13,17 @@ var CHAT = {
   // CLIENT MESSAGING FUNCTIONS
   // ===================================
 
-  add_message: function (sender_name, message) {
+  get_private_room_id: function(username, recipient_username) {
+    var room_id = '';
+    if (username[0] > recipient_username[0]) {
+      room_id += username + ' & ' + recipient_username;
+    } else {
+      room_id += recipient_username + ' & ' + username;
+    }
+    return room_id;
+  },
+
+  add_message: function (sender_id, sender_name, message) {
     var bubble_class = "message-to-user"
     if (sender_name.localeCompare(CHAT.user_name) == 0) {
       bubble_class = "message-from-user";
@@ -34,6 +44,13 @@ var CHAT = {
     var text_paragraph = document.createElement('p');
     text_paragraph.classList.add('message-content');
     text_paragraph.innerHTML = message;
+
+    // Add ocnlick for private chat
+    if (sender_name.localeCompare(CHAT.user_name) != 0 && sender_id != 0) {
+      message_buble.onclick = function (event) {
+        CHAT.add_a_connection(CHAT.get_private_room_id(CHAT.user_name, sender_name), true, sender_id, CHAT.current_conversation);
+      };
+    }
 
     // Merge all the structure & submit to the DOM
     message_buble.appendChild(sender_paragraph);
@@ -78,7 +95,7 @@ var CHAT = {
     } else {
       CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg), [CHAT.if_is_private[CHAT.current_conversation.id]]);
     }
-    CHAT.add_message(CHAT.user_name, CHAT.text_input.value);
+    CHAT.add_message(0, CHAT.user_name, CHAT.text_input.value);
     CHAT.text_input.value = "";
 
     CHAT.chat_history[CHAT.current_conversation] = CHAT.chat_history[CHAT.current_conversation].concat(msg);
@@ -102,26 +119,6 @@ var CHAT = {
   // ===================================
   // CONVERSATION FUNCTIONS
   // ===================================
-  create_private_conversation: function(username, user_id) {
-    var room_id = 'private_room';
-    // Deterministic chatroom name
-    if (username[0] > CHAT.user_name[0]) {
-      room_id += username + '_' + CHAT.user_name + CHAT.chat_room_prefix;
-    } else {
-      room_id += CHAT.user_name + '_' + username + CHAT.chat_room_prefix;
-    }
-    var msg = {};
-    msg.type = 'private_chat';
-    msg.username = CHAT.current_user;
-    msg.content = room_id;
-    msg = JSON.stringify(msg);
-
-    // Send the channel data to the other user
-    CHAT.server_connections[CHAT.current_conversation].sendMessage(msg, [user_id]);
-  },
-
-
-
   add_conversation: function(name) {
     this.if_is_private[name] = {'private': false};
     // Just create structure and add it to the DOM
@@ -154,7 +151,7 @@ var CHAT = {
 
     const history = CHAT.chat_history[CHAT.current_conversation];
     for(var i = 0; i < history.length; i++) {
-      CHAT.add_message(history[i].username, history[i].content);
+      CHAT.add_message(0, history[i].username, history[i].content);
     }
   },
 
@@ -173,16 +170,18 @@ var CHAT = {
 
 
 
-  private_server_on_ready: function(server_index, id, recipient_user_id, conversation_id, room_id) {
-    var msg = {};
-    msg.type = 'private_chat';
-    msg.username = CHAT.current_user;
-    msg.content = room_id;
-    msg = JSON.stringify(msg);
+  private_server_on_ready: function(server_index, id, recipient_user_id, conversation_id, room_id, request_recibed) {
+    // If you recibe the request, then you dont need the send one!
+    if (!request_recibed) {
+      var msg = {};
+      msg.type = 'private_chat';
+      msg.username = CHAT.current_user;
+      msg.content = server_index;
+      msg = JSON.stringify(msg);
 
-    // Send the channel data to the other user
-    CHAT.server_connections[conversation_id].sendMessage(msg, [recipient_user_id]);
-
+      // Send the channel data to the other user
+      this.server_connections[conversation_id].sendMessage(msg, [recipient_user_id]);
+    }
 
     this.server_on_ready(server_index, id);
     this.if_is_private[server_index] = {};
@@ -250,13 +249,15 @@ var CHAT = {
     console.log(server_index, this.current_conversation, on_this_conversation, "======");
 
     if (msg.type.localeCompare('text') == 0) {
+      // A normal message
       this.chat_history[server_index].push(msg);
 
       if (on_this_conversation) {
-        this.add_message(msg.username, msg.content);
+        this.add_message(author_id, msg.username, msg.content);
       }
 
     } else if (msg.type.localeCompare('history-request') == 0) {
+      // Another user request the history of the chat
       var history_msg = {};
       history_msg.type = 'history';
       history_msg.content = this.chat_history[server_index];
@@ -264,15 +265,20 @@ var CHAT = {
       this.server_connections[server_index].sendMessage(JSON.stringify(history_msg));
 
     } else if (msg.type.localeCompare('history') == 0) {
+      // History of the chat
       var history = msg.content;
 
       this.chat_history[server_index] = history;
 
       if (on_this_conversation) {
         for(var i = 0; i < history.length; i++) {
-          this.add_message(history[i].username, history[i].content);
+          this.add_message(0, history[i].username, history[i].content);
         }
       }
+    } else if (msg.type.localeCompare('private_chat') == 0) {
+      // A request for a private chat
+      CHAT.add_a_connection(msg.content, true, msg.username, '', true);
+
     }
     console.log("Message recibed", author_id, message, msg);
   },
@@ -285,7 +291,7 @@ var CHAT = {
 
 
 
-  add_a_connection: function(server_name, is_private=false, recipient_user_id='', conversation_id='') {
+  add_a_connection: function(server_name, is_private=false, recipient_user_id='', conversation_id='', request_recibed=false) {
     var server_connection = new SillyClient();
     var room_id = '';
 
@@ -303,7 +309,7 @@ var CHAT = {
        };
     } else {
        server_connection.on_ready = function(id) {
-         CHAT.private_server_on_ready(server_name, id, recipient_user_id, conversation_id, room_id);
+         CHAT.private_server_on_ready(server_name, id, recipient_user_id, conversation_id, room_id, request_recibed);
        };
     }
     server_connection.on_room_info = function(info) {
