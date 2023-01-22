@@ -3,6 +3,7 @@ var CHAT = {
   chat_history: {},
 
   current_user: "Juan",
+  user_name: "Juan",
   chat_room_prefix: "_jsm_chatroom_prefix",
   current_conversation: null,
   server_connections: {},
@@ -41,11 +42,22 @@ var CHAT = {
     this.message_box.scrollTop = 100000;
   },
 
+  send_message: function () {
+    var msg = {};
+    msg.type = 'text';
+    msg.username = CHAT.user_name;
+    msg.content = CHAT.text_input.value;
+
+    CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg));
+    CHAT.add_message(CHAT.current_user, CHAT.text_input.value);
+    CHAT.text_input.value = "";
+
+    CHAT.chat_history[CHAT.current_conversation].push(msg);
+  },
+
   send_button_onclick: function (event) {
     if (event.code == 'Enter') {
-      CHAT.server_connections[CHAT.current_conversation].sendMessage(CHAT.text_input.value);
-      CHAT.add_message(CHAT.current_user, CHAT.text_input.value);
-      CHAT.text_input.value = "";
+      CHAT.send_message();
     }
   },
 
@@ -82,7 +94,9 @@ var CHAT = {
   },
 
   server_on_message: function(server_index, author_id, message) {
-    this.add_message(author_id, message);
+    var msg = JSON.parse(message);
+    this.add_message(author_id, msg.content);
+    this.chat_history[this.current_conversation].push(msg);
     console.log("Message", author_id, message)
   },
 
