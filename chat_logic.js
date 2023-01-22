@@ -89,6 +89,7 @@ var CHAT = {
     msg.type = 'text';
     msg.username = CHAT.user_name;
     msg.content = CHAT.text_input.value;
+    msg.user_id = CHAT.current_user;
 
     if (!CHAT.if_is_private[CHAT.current_conversation].private) {
       CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg));
@@ -151,7 +152,7 @@ var CHAT = {
 
     const history = CHAT.chat_history[CHAT.current_conversation];
     for(var i = 0; i < history.length; i++) {
-      CHAT.add_message(0, history[i].username, history[i].content);
+      CHAT.add_message(history[i].user_id, history[i].username, history[i].content);
     }
   },
 
@@ -272,7 +273,7 @@ var CHAT = {
 
       if (on_this_conversation) {
         for(var i = 0; i < history.length; i++) {
-          this.add_message(0, history[i].username, history[i].content);
+          this.add_message(history[i].user_id, history[i].username, history[i].content);
         }
       }
     } else if (msg.type.localeCompare('private_chat') == 0) {
