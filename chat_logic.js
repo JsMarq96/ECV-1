@@ -8,6 +8,7 @@ var CHAT = {
   current_conversation: null,
   server_connections: {},
   if_is_private: {},
+  id_names_dict: {},
 
   // ===================================
   // CLIENT MESSAGING FUNCTIONS
@@ -63,18 +64,14 @@ var CHAT = {
 
 
 
-  add_join_notification(name, is_disconected) {
+  add_bubble_notification(text) {
     var main_div = document.createElement('div');
     main_div.classList.add('message-container');
 
     var sub_div = document.createElement('div');
     sub_div.classList.add('message-join');
 
-    if (is_disconected) {
-      sub_div.innerHTML = name + ' disconected';
-    } else {
-      sub_div.innerHTML = name + ' connected';
-    }
+    sub_div.innerHTML = text;
 
     main_div.appendChild(sub_div);
 
@@ -211,6 +208,14 @@ var CHAT = {
         CHAT.server_connections[CHAT.current_conversation].sendMessage(msg, [info.clients[i]]);
         break;
       }
+
+      // Send name
+      var msg = {};
+      msg.type = 'name';
+      msg.just_joined = false;
+      msg.content = {id: CHAT.current_user, name: CHAT.user_name};
+      CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg));
+
     }
     CHAT.add_conversation(this.current_conversation);
     // Show the conversation box
@@ -224,9 +229,14 @@ var CHAT = {
     if (server_index.localeCompare(this.current_conversation) != 0) {
       return;
     }
-    this.add_join_notification(user_id, false);
     console.log("User connected", user_id);
-
+    // Send the name to the new user
+    // Send name
+    var msg = {};
+    msg.type = 'name';
+    msg.just_joined = true;
+    msg.content = {id: CHAT.current_user, name: CHAT.user_name};
+    CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg), [user_id]);
   },
 
 
@@ -236,7 +246,7 @@ var CHAT = {
       return;
     }
 
-    this.add_join_notification(user_id, true);
+    this.add_bubble_notification(this.id_names_dict[user_id] + ' disconected');
     console.log("User disconnected", user_id);
 
   },
@@ -280,7 +290,15 @@ var CHAT = {
       // A request for a private chat
       CHAT.add_a_connection(msg.content, true, msg.username, '', true);
 
+    } else if (msg.type.localeCompare('name') == 0) {
+      CHAT.id_names_dict[msg.content.id] = msg.content.name;
+      if (msg.just_joined) {
+        this.add_bubble_notification(msg.content.name + ' joined');
+      } else {
+        this.add_bubble_notification(msg.content.name + ' is on this chat');
+      }
     }
+
     console.log("Message recibed", author_id, message, msg);
   },
 
