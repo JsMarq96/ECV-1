@@ -38,7 +38,14 @@ var user_template = {
 
   render: function(ctx, time, cam_scale) {
     const img = get_image(this.img);
+
+    ctx.save();
+    ctx.translate(this.position.x, this.position.y);
+
     if (this.speed.x > 0.0 || this.speed.x < 0.0) {
+      // Invert based on direction
+      this.facing_left = this.speed.x < 0.0;
+
       // The character is moving
       var frame = Math.floor(time * 0.001 * 10) % this.tile_walk.length;
       var x_tile = (frame * this.tile_size_x) % img.width;
@@ -48,16 +55,25 @@ var user_template = {
       var x_tile = (this.tile_standby * this.tile_size_x) % img.width;
       var y_tile = Math.floor(this.tile_standby / (this.tile_size_x / img.width));
     }
+    // Invert based on direction
+    if (this.facing_left) {
+        ctx.translate(4.0 * this.tile_size_x, 0.0);
+        ctx.scale(-1, 1);
+      }
+
+
     ctx.drawImage(img,
                   x_tile, y_tile,
                   this.tile_size_x, this.tile_size_y,
-                  this.position.x, this.position.y,
+                  0.0, 0.0,
                   this.tile_size_x * this.scale, this.tile_size_y * this.scale);
+    ctx.restore();
   }
 };
 
 
 var World = {
+  current_user: null,
   camera_pos: {x: 0, y: 0},
   camera_scale: {width: 0, height: 0},
   current_room: "",
@@ -97,7 +113,13 @@ var World = {
     var elapsed_time = (now - World.last_time) / 1000;
     last_time = now;
 
-    // Update
+    // Updated
+    // Add movement marks
+
+
+    for(var i = 0; i < World.objects[World.current_room].length; i++) {
+      World.objects[World.current_room][i].position.x += World.objects[World.current_room][i].speed.x * elapsed_time;
+    }
 
     // Reset the camera transfomrs, return the axis to the origila pos, and send the animation frame
     ctx.resetTransform();
@@ -140,11 +162,11 @@ var World = {
 
 
 World.create_room("room_1", "imgs/mezeus-silent-hill.jpg", 0.86);
-var user_id = World.add_user_to_room("room_1",
-                                     "imgs/tileset.png",
-                                     4.0,
-                                     43, 43,
-                                     0,
-                                     [1, 2, 3, 4, 5, 6, 7]);
+World.current_user = World.add_user_to_room("room_1",
+                                            "imgs/tileset.png",
+                                            4.0,
+                                            43, 43,
+                                            0,
+                                            [1, 2, 3, 4, 5, 6, 7]);
 World.current_room = "room_1";
 World.render_frame();
