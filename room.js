@@ -1,5 +1,7 @@
 var canvas = document.getElementById("main_canvas");
 
+var MOVEMENT_SPEED = 30.0;
+var DELTA = 5;
 var img_cache = {};
 function get_image(url) {
   if (img_cache[url])
@@ -27,6 +29,7 @@ var obj_template = {
 var user_template = {
   position: {x: 0, y: 0},
   speed: {x: 0, y:0},
+  move_towards: 0,
   facing_left: false,
   scale: 1.0,
   img: null,
@@ -35,6 +38,20 @@ var user_template = {
   tile_size_y: 0,
   tile_standby: 0,
   tile_walk: [],
+
+  update: function(elapsed_time) {
+    // Move the character towards the designated point, until is close enough
+    if (Math.abs(this.position.x - this.move_towards) > DELTA) {
+      this.speed.x = -Math.sign(this.position.x - this.move_towards);
+      this.position.x = this.speed.x * elapsed_time * MOVEMENT_SPEED;
+    } else {
+      this.speed.x = 0.0;
+    }
+  },
+
+  move_towards: function (position) {
+    this.move_towards = position;
+  },
 
   render: function(ctx, time, cam_scale) {
     const img = get_image(this.img);
@@ -115,10 +132,8 @@ var World = {
 
     // Updated
     // Add movement marks
-
-
     for(var i = 0; i < World.objects[World.current_room].length; i++) {
-      World.objects[World.current_room][i].position.x += World.objects[World.current_room][i].speed.x * elapsed_time;
+      World.objects[World.current_room][i].update(elapsed_time);
     }
 
     // Reset the camera transfomrs, return the axis to the origila pos, and send the animation frame
