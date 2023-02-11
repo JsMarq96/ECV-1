@@ -30,6 +30,7 @@ var user_template = {
   facing_left: false,
   scale: 1.0,
   img: null,
+  tile_height: 1,
   tile_size_x: 0,
   tile_size_y: 0,
   tile_standby: 0,
@@ -39,10 +40,10 @@ var user_template = {
     const img = get_image(this.img);
     if (this.speed.x > 0.0 || this.speed.x < 0.0) {
       // The character is moving
-      var frame = time % this.tile_walk.length;
+      var frame = Math.floor(time * 0.001 * 10) % this.tile_walk.length;
       var x_tile = (frame * this.tile_size_x) % img.width;
-      var y_tile = Math.floor(frame / (this.tile_size_x / img.width));
-    } else {
+      var y_tile = Math.floor(frame / (this.tile_size_x / img.width)) % this.tile_height;
+     } else {
       // Stopped character
       var x_tile = (this.tile_standby * this.tile_size_x) % img.width;
       var y_tile = Math.floor(this.tile_standby / (this.tile_size_x / img.width));
@@ -87,8 +88,9 @@ var World = {
     World.room_backgrounds[World.current_room].render(ctx);
 
     // Render each object
+    var time = performance.now();
     for(var i = 0; i < World.objects[World.current_room].length; i++) {
-      World.objects[World.current_room][i].render(ctx, {x: 1, y: 1});
+      World.objects[World.current_room][i].render(ctx, performance.now(), {x: 1, y: 1});
     }
 
     var now = performance.now();
@@ -125,7 +127,7 @@ var World = {
     new_user.tile_size_x = tile_size_x;
     new_user.tile_size_y = tile_size_y;
     new_user.tile_standby = tile_standby;
-    new_user.tile_walk_anim = tile_walk_anim;
+    new_user.tile_walk = tile_walk_anim;
 
     this.objects[room_name].push(new_user);
 
