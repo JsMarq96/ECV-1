@@ -1,7 +1,9 @@
 var canvas = document.getElementById("main_canvas");
 
-var MOVEMENT_SPEED = 30.0;
+var MOVEMENT_SPEED = 40.0;
 var DELTA = 5;
+
+
 var img_cache = {};
 function get_image(url) {
   if (img_cache[url])
@@ -10,6 +12,10 @@ function get_image(url) {
   var img = img_cache[url] = new Image();
   img.src = url;
   return img;
+}
+
+function LERP(a, min, max) {
+  return  min + a * (max - min);
 }
 
 var obj_template = {
@@ -115,7 +121,12 @@ var World = {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Set coordinate center on the center of teh scree, taking into accout the camera pos
-    ctx.translate(-World.camera_pos.x + canvas.width/ 2, -World.camera_pos.y + canvas.height / 2);
+    const half_player_width = World.objects[World.current_room][World.current_user].tile_size_x * 2.0;
+    const curr_camera_coords = World.camera_pos.x;
+    const ideal_camera_pos = World.objects[World.current_room][World.current_user].position.x + half_player_width;
+    // Move smoothly the cam
+    World.camera_pos.x = LERP(0.01, curr_camera_coords, ideal_camera_pos);
+    ctx.translate(-World.camera_pos.x + canvas.width / 2, -World.camera_pos.y + canvas.height / 2);
 
     // Draw the background of the current room
     World.room_backgrounds[World.current_room].render(ctx);
@@ -185,3 +196,5 @@ World.current_user = World.add_user_to_room("room_1",
                                             [1, 2, 3, 4, 5, 6, 7]);
 World.current_room = "room_1";
 World.render_frame();
+
+World.objects[World.current_room][World.current_user].move_towards(-220);
