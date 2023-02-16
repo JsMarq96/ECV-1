@@ -198,3 +198,32 @@ World.current_room = "room_1";
 World.render_frame();
 
 World.objects[World.current_room][World.current_user].move_towards(-220);
+
+
+const socket = new WebSocket('ws://localhost:9035/messages');
+socket.addEventListener('open', (event) => {
+  var login_request = {'type':'login', 'data': 'testtest'};
+  socket.send(JSON.stringify(login_request));
+  console.log("Send login");
+});
+
+socket.addEventListener('message', (event) => {
+  console.log(event.data);
+  var msg_obj = JSON.parse(event.data);
+
+  if (msg_obj.type.localeCompare("logged_in") == 0) {
+    // Get the room and the data
+  } else if (msg_obj.type.localeCompare("new_message") == 0) {
+    // Get the room and the data
+  } else if (msg_obj.type.localeCompare("change_room") == 0) {
+    // Get the room data
+  } else if (msg_obj.type.localeCompare("move_character") == 0) {
+    // Get the room data
+  } else if (msg_obj.type.localeCompare("new_character") == 0) {
+    // Get the room data
+  } else if (msg_obj.type.localeCompare("move_character") == 0) {
+    // Get the room data
+  }
+
+
+  });
