@@ -1,7 +1,7 @@
 var canvas = document.getElementById("main_canvas");
 
 var MOVEMENT_SPEED = 40.0;
-var DELTA = 5;
+var DELTA = 30;
 
 
 var img_cache = {};
@@ -35,7 +35,7 @@ var obj_template = {
 var user_template = {
   position: {x: 0, y: 0},
   speed: {x: 0, y:0},
-  move_towards: 0,
+  move_marker: 0,
   facing_left: false,
   scale: 1.0,
   img: null,
@@ -47,16 +47,16 @@ var user_template = {
 
   update: function(elapsed_time) {
     // Move the character towards the designated point, until is close enough
-    if (Math.abs(this.position.x - this.move_towards) > DELTA) {
-      this.speed.x = -Math.sign(this.position.x - this.move_towards);
-      this.position.x = this.speed.x * elapsed_time * MOVEMENT_SPEED;
+    if (Math.abs(this.position.x - this.move_marker) > DELTA) {
+      this.speed.x = -Math.sign(this.position.x - this.move_marker) * MOVEMENT_SPEED;
+      this.position.x += this.speed.x * elapsed_time;
     } else {
       this.speed.x = 0.0;
     }
   },
 
   move_towards: function (position) {
-    this.move_towards = position;
+    this.move_marker = position;
   },
 
   render: function(ctx, time, cam_scale) {
@@ -139,7 +139,7 @@ var World = {
 
     var now = performance.now();
     var elapsed_time = (now - World.last_time) / 1000;
-    last_time = now;
+    World.last_time = now;
 
     // Updated
     // Add movement marks
