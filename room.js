@@ -182,10 +182,18 @@ var World = {
 
     // Returns the index of the current object
     return this.objects[room_name].length - 1;
+  },
+
+  update_position: function(position_x) {
+    var msg = {'type': 'updated_position', 'position': position_x};
+    World.socket.send(JSON.stringify(msg));
+  },
+
+  send_message: function(message) {
+    var msg = {'type': 'message', 'message': message};
+    World.socket.send(JSON.stringify(msg));
   }
-
 };
-
 
 
 World.create_room("room_1", "imgs/mezeus-silent-hill.jpg", 0.86);
@@ -207,6 +215,8 @@ socket.addEventListener('open', (event) => {
   var login_request = {'type':'login', 'data': 'testtest'};
   socket.send(JSON.stringify(login_request));
   console.log("Send login");
+
+  World.socket = socket;
 });
 
 socket.addEventListener('message', (event) => {
@@ -230,14 +240,22 @@ socket.addEventListener('message', (event) => {
     }
   } else if (msg_obj.type.localeCompare("new_message") == 0) {
     // Get the room and the data
+    console.log(msg_obj.message);
   } else if (msg_obj.type.localeCompare("change_room") == 0) {
     // Get the room data
-  } else if (msg_obj.type.localeCompare("move_character") == 0) {
-    // Get the room data
-  } else if (msg_obj.type.localeCompare("new_character") == 0) {
+  }  else if (msg_obj.type.localeCompare("new_character") == 0) {
     // Get the room data
   } else if (msg_obj.type.localeCompare("move_character") == 0) {
-    // Get the room data
+    // Move teh character
+    var room_data = World.objects[World.current_room];
+
+    for(var i = 0; i < room_data.length; i++) {
+      if (room_data[i].id == msg_obj.user_id) {
+        room_data[i].move_towards(msg_obj.position);
+        break;
+      }
+    }
+
   }
 
 
