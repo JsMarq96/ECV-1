@@ -167,9 +167,10 @@ var World = {
     this.objects[name] = [];
   },
 
-  add_user_to_room: function (room_name, img, scale, tile_size_x, tile_size_y, tile_standby, tile_walk_anim) {
+  add_user_to_room: function (room_name, server_id, img, scale, tile_size_x, tile_size_y, tile_standby, tile_walk_anim) {
     // Fill the user strucutre
     var new_user = {...user_template};
+    new_user.id = server_id;
     new_user.scale = scale;
     new_user.img = img;
     new_user.tile_size_x = tile_size_x;
@@ -189,6 +190,7 @@ var World = {
 
 World.create_room("room_1", "imgs/mezeus-silent-hill.jpg", 0.86);
 World.current_user = World.add_user_to_room("room_1",
+                                            0,
                                             "imgs/tileset.png",
                                             4.0,
                                             43, 43,
@@ -213,6 +215,19 @@ socket.addEventListener('message', (event) => {
 
   if (msg_obj.type.localeCompare("logged_in") == 0) {
     // Get the room and the data
+    var room_data = msg_obj['room'];
+    World.create_room(room_data.name, room_data.back_img, 0.86);
+    World.current_room = room_data.name;
+
+    for(var i = 0; i < room_data.users.length; i++) {
+      World.add_user_to_room(room_data.name,
+                             room_data.users[i].id,
+                             "imgs/tileset.png",
+                             2.0,
+                             43, 43,
+                             room_data.users[i].position.x,
+                             [1, 2, 3, 4, 5, 6, 7]);
+    }
   } else if (msg_obj.type.localeCompare("new_message") == 0) {
     // Get the room and the data
   } else if (msg_obj.type.localeCompare("change_room") == 0) {
