@@ -1,17 +1,32 @@
 <html>
+
   <head>
-    <style>
-      #main_canvas {
-          width: 100%;
-          height: 100%;
-          margin: 0px;
-          padding: 0px;
-          overflow: hidden;
-      }
-    </style>
+    <meta charset="UTF-8">
+    <link href="style_rooms.css" rel="stylesheet" />
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
   </head>
+
   <body>
     <canvas id="main_canvas"></canvas>
+
+    <div id="chat_area">
+      <div id="conversation_area" >
+      </div>
+
+
+      <div id="chat_input">
+
+        <input id="text-input" placeholder=" Type message here"/>
+
+        <div id="send-button-container">
+          <button id="send-button">&uArr;</button>
+        </div>
+
+      </div>
+    </div>
+
     <script src="room.js"></script>
+
   </body>
+
 </html>
