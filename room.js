@@ -3,7 +3,6 @@ var canvas = document.getElementById("main_canvas");
 var MOVEMENT_SPEED = 40.0;
 var DELTA = 30;
 
-
 var img_cache = {};
 function get_image(url) {
   if (img_cache[url])
@@ -55,7 +54,7 @@ var user_template = {
     }
   },
 
-  move_towards: function (position) {
+  move_towards_pos: function (position) {
     this.move_marker = position;
   },
 
@@ -91,6 +90,7 @@ var user_template = {
                   0.0, 0.0,
                   this.tile_size_x * this.scale, this.tile_size_y * this.scale);
     ctx.restore();
+    //console.log(this.id, " ====");
   }
 };
 
@@ -103,6 +103,43 @@ var World = {
   objects: {},
   room_backgrounds: {},
   last_time: performance.now(),
+
+  render_menu: function() {
+    var ctx = canvas.getContext('2d');
+
+    // Canvas scale & aspect ratio
+    var parent = canvas.parentNode;
+    var rect = parent.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height= rect.height;
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingQuality = "high";
+
+    // Clear pass
+    ctx.fillStyle = "#000000"; // Black
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Set coordinate center on the center of teh scree, taking into accout the camera pos
+    const half_player_width = World.objects[World.current_room][World.current_user].tile_size_x * 2.0;
+    const curr_camera_coords = World.camera_pos.x;
+    const ideal_camera_pos = World.objects[World.current_room][World.current_user].position.x + half_player_width;
+    // Move smoothly the cam
+    World.camera_pos.x = LERP(0.01, curr_camera_coords, ideal_camera_pos);
+    ctx.translate(-World.camera_pos.x + canvas.width / 2, -World.camera_pos.y + canvas.height / 2);
+
+    // Draw the background of the current room
+    World.room_backgrounds[World.current_room].render(ctx);
+
+    var now = performance.now();
+    var elapsed_time = (now - World.last_time) / 1000;
+    World.last_time = now;
+
+    // Updated
+
+    // Reset the camera transfomrs, return the axis to the origila pos, and send the animation frame
+    ctx.resetTransform();
+  },
 
   render_frame: function() {
     var ctx = canvas.getContext('2d');
@@ -133,6 +170,7 @@ var World = {
 
     // Render each object
     var time = performance.now();
+    //console.log("hee" ,World.objects[World.current_room]);
     for(var i = 0; i < World.objects[World.current_room].length; i++) {
       World.objects[World.current_room][i].render(ctx, performance.now(), {x: 1, y: 1});
     }
@@ -149,7 +187,6 @@ var World = {
 
     // Reset the camera transfomrs, return the axis to the origila pos, and send the animation frame
     ctx.resetTransform();
-    requestAnimationFrame(World.render_frame);
   },
 
   create_room: function(name, image_url, scale) {
@@ -178,10 +215,8 @@ var World = {
     new_user.tile_standby = tile_standby;
     new_user.tile_walk = tile_walk_anim;
 
-    this.objects[room_name].push(new_user);
-
-    // Returns the index of the current object
-    return this.objects[room_name].length - 1;
+    World.objects[room_name].push(new_user);
+    return World.objects[room_name].length - 1;
   },
 
   update_position: function(position_x) {
@@ -196,27 +231,68 @@ var World = {
 };
 
 
-World.create_room("room_1", "imgs/mezeus-silent-hill.jpg", 0.86);
-World.current_user = World.add_user_to_room("room_1",
-                                            0,
-                                            "imgs/tileset.png",
-                                            4.0,
-                                            43, 43,
-                                            0,
-                                            [1, 2, 3, 4, 5, 6, 7]);
-World.current_room = "room_1";
-World.render_frame();
+function main_render_loop() {
 
-World.objects[World.current_room][World.current_user].move_towards(-220);
+  if (logged_in) {
+    World.render_frame();
+  } else {
+    World.render_menu();
+  }
 
+  requestAnimationFrame(main_render_loop);
+}
+
+function init_menu() {
+  World.create_room("room_1", "imgs/mezeus-silent-hill.jpg", 0.86);
+  World.current_user = World.add_user_to_room("room_1",
+                                              0,
+                                              "imgs/tileset.png",
+                                              4.0,
+                                              43, 43,
+                                              0,
+                                              [1, 2, 3, 4, 5, 6, 7]);
+  World.current_room = "room_1";
+  World.render_frame();
+
+  World.objects[World.current_room][World.current_user].move_towards_pos(-220);
+
+  main_render_loop();
+}
+
+function log_in() {
+  var key = name_input.value + '_' + pass_input.value;
+  var login_request = {'type':'login', 'data': key};
+  socket.send(JSON.stringify(login_request));
+  console.log("Send login");
+  register_button.disabled = false;
+  login_button.disabled = false;
+}
+
+function register() {
+  var key = name_input.value + '_' + pass_input.value;
+  var register_request = {'type':'register', 'data': key};
+  socket.send(JSON.stringify(register_request));
+  console.log("Send register");
+  register_button.disabled = false;
+  login_button.disabled = false;
+}
+
+var login_area = document.getElementById("login_area");
+var chat_area = document.getElementById("chat_area");
+var name_input = document.getElementById("user_input");
+var pass_input = document.getElementById("pass_input");
+var register_button = document.getElementById("register_button");
+var login_button = document.getElementById("login_button");
+var logged_in = false;
+
+register_button.onclick = register;
+login_button.onclick = log_in;
 
 const socket = new WebSocket('ws://localhost:9035/messages');
 socket.addEventListener('open', (event) => {
-  var login_request = {'type':'login', 'data': 'testtest'};
-  socket.send(JSON.stringify(login_request));
-  console.log("Send login");
-
   World.socket = socket;
+
+  init_menu();
 });
 
 socket.addEventListener('message', (event) => {
@@ -238,25 +314,53 @@ socket.addEventListener('message', (event) => {
                              room_data.users[i].position.x,
                              [1, 2, 3, 4, 5, 6, 7]);
     }
+
+    logged_in = true;
   } else if (msg_obj.type.localeCompare("new_message") == 0) {
     // Get the room and the data
     console.log(msg_obj.message);
   } else if (msg_obj.type.localeCompare("change_room") == 0) {
     // Get the room data
   }  else if (msg_obj.type.localeCompare("new_character") == 0) {
-    // Get the room data
-  } else if (msg_obj.type.localeCompare("move_character") == 0) {
-    // Move teh character
-    var room_data = World.objects[World.current_room];
+    // Add the character to the room
+    World.add_user_to_room(World.current_room,
+                           msg_obj.user_id,
+                           "imgs/tileset.png",
+                           2.0,
+                           43, 43,
+                           msg_obj.position_x,
+                           [1, 2, 3, 4, 5, 6, 7]);
 
-    for(var i = 0; i < room_data.length; i++) {
-      if (room_data[i].id == msg_obj.user_id) {
-        room_data[i].move_towards(msg_obj.position);
+  } else if (msg_obj.type.localeCompare("move_character") == 0) {
+    for(var i = 0; i < World.objects[World.current_room].length; i++) {
+      if (World.objects[World.current_room][i].id.localeCompare(msg_obj.user_id) == 0) {
+        World.objects[World.current_room][i].move_towards_pos(msg_obj.position);
+        break;
+      }
+    }
+  } else if (msg_obj.type.localeCompare("user_disconnect") == 0) {
+    for(var i = 0; i < World.objects[World.current_room].length; i++) {
+      if (World.objects[World.current_room][i].id.localeCompare(msg_obj.user_id) == 0) {
+        World.objects[World.current_room].splice(i, 1);
         break;
       }
     }
 
-  }
+  } else if (msg_obj.type.localeCompare("login_error") == 0) {
+    register_button.disabled = false;
+    login_button.disabled = false;
 
+    alert("Error loggin in");
+  } else if (msg_obj.type.localeCompare("register_error") == 0) {
+    register_button.disabled = false;
+    login_button.disabled = false;
+
+    alert("Error registering in");
+  } else if (msg_obj.type.localeCompare("registered_in") == 0) {
+    register_button.disabled = false;
+    login_button.disabled = false;
+
+    alert("User registered in");
+  }
 
   });
