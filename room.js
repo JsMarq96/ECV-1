@@ -95,7 +95,8 @@ canvas.onclick = function(e) {
   for(var i = 0; i < doors.length; i++) {
     console.log(get_world_cursor_position(e), doors[i].pos_x, doors[i].pos_x + door_width);
     if (cursor_pos.x > (doors[i].pos_x - door_width / 2) && cursor_pos.x < (doors[i].pos_x + door_width / 2)) {
-      console.log("DOOOOR");
+      console.log("DOOOOR", doors[i]);
+      World.move_to_room(doors[i].to)
     }
   }
 }
@@ -155,8 +156,39 @@ socket.addEventListener('message', (event) => {
     // Get the room and the data
     console.log(msg_obj);
     add_message(msg_obj.from, msg_obj.from_name, msg_obj.message, msg_obj.from.localeCompare(World.current_user.id) == 0);
-  } else if (msg_obj.type.localeCompare("change_room") == 0) {
+  } else if (msg_obj.type.localeCompare("move_to_room") == 0) {
+    // Clean chat
+    messa_box.innerHTLM = "";
     // Get the room data
+    var room_data = msg_obj['new_room'];
+    World.create_room(room_data.name, room_data.back_img, 0.86, room_data.doors);
+    World.current_room = room_data.name;
+    console.log(room_data);
+
+    var bubble = "";
+
+    for(var i = 0; i < room_data.users.length; i++) {
+      var position_id = World.add_user_to_room(room_data.users[i].name,
+                                               room_data.name,
+                                               room_data.users[i].id,
+                                               room_data.users[i].position,
+                                               room_data.users[i].style,
+                                               IMG_DIRS[room_data.users[i].style],
+                                               2.0,
+                                               43, 43,
+                                               0,
+                                               [1, 2, 3, 4, 5, 6, 7]);
+      // Add a reference to the current user
+      if (room_data.users[i].id.localeCompare(msg_obj.id) == 0) {
+        World.current_user = World.objects[room_data.name][position_id];
+      } else {
+        bubble += room_data.users[i].name + ", ";
+      }
+    }
+    add_bubble_notification("Just entered in " + room_data.name);
+    if (bubble.length > 1) {
+      add_bubble_notification(bubble + " are in this room, say hi!");
+    }
   }  else if (msg_obj.type.localeCompare("new_character") == 0) {
     // Add the character to the room
     World.add_user_to_room(msg_obj.name,

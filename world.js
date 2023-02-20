@@ -32,7 +32,7 @@ var World = {
     ctx.translate(-World.camera_pos.x + canvas.width / 2, -World.camera_pos.y + canvas.height / 2);
 
     // Draw the background of the current room
-    World.room_backgrounds[World.current_room].render(ctx);
+    World.render_background(ctx, World.room_backgrounds[World.current_room]);
 
     var now = performance.now();
     var elapsed_time = (now - World.last_time) / 1000;
@@ -72,7 +72,7 @@ var World = {
 
 
     // Draw the background of the current room
-    World.room_backgrounds[World.current_room].render(ctx);
+    World.render_background(ctx, World.room_backgrounds[World.current_room]);
     World.render_doors(ctx, World.room_backgrounds[World.current_room].doors);
 
     // Render each object
@@ -115,16 +115,18 @@ var World = {
 
   },
 
+  render_background: function(ctx, room) {
+    var image = get_image(room.img_url);
+    var size = [image.width * room.scale, image.height * room.scale];
+    console.log(image);
+    ctx.drawImage(image, -size[0] / 2, -size[1] / 2, size[0], size[1]);
+  },
+
   create_room: function(name, image_url, scale, doors) {
     var new_room = {
       doors: doors,
       img_url: image_url,
       scale: scale,
-      render: function(ctx) {
-        var image = get_image(this.img_url);
-        var size = [image.width * scale, image.height * scale];
-        ctx.drawImage(image, -size[0] / 2, -size[1] / 2, size[0], size[1]);
-      }
     };
 
     this.room_backgrounds[name] = new_room;
@@ -159,5 +161,9 @@ var World = {
   send_message: function(message) {
     var msg = {'type': 'message', 'message': message};
     World.socket.send(JSON.stringify(msg));
+  },
+
+  move_to_room: function(room_id) {
+    World.socket.send(JSON.stringify({'type': 'change_room', 'new_room': room_id}))
   }
 };
