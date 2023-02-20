@@ -6,6 +6,12 @@ var IMG_DIRS = {
   'blue-twingo': "imgs/tileset_blue_twingo.png"
 };
 
+var STYLE_COLORS = {
+  'blue-twingo': '#2990C9',
+  'red-sun': '#F23636',
+  'off-white': '#BFBFBF',
+  'off-black': '#252525'
+};
 
 var img_cache = {};
 function get_image(url) {
@@ -50,6 +56,8 @@ var user_template = {
   tile_standby: 0,
   tile_walk: [],
   name: "",
+  style: "",
+
   update: function(elapsed_time) {
     // Move the character towards the designated point, until is close enough
     if (Math.abs(this.position_x - this.move_marker) > DELTA) {
@@ -84,21 +92,26 @@ var user_template = {
       var x_tile = (this.tile_standby * this.tile_size_x) % img.width;
       var y_tile = Math.floor(this.tile_standby / (this.tile_size_x / img.width));
     }
+
+    // Render text before inverting
+    ctx.textAlign = "center";
+    ctx.font = "25px Roboto";
+    ctx.fillStyle = STYLE_COLORS[this.style];
+
     // Invert based on direction
     if (this.facing_left) {
-        ctx.translate(4.0 * this.tile_size_x, 0.0);
-        ctx.scale(-1, 1);
-      }
-
+      ctx.fillText(this.name, 22 + (4.0 * this.tile_size_x * this.scale) / 3.0, -10.0);
+      ctx.translate(4.0 * this.tile_size_x, 0.0);
+      ctx.scale(-1, 1);
+    } else {
+      ctx.fillText(this.name, (this.tile_size_x * this.scale) / 2.0, -10.0);
+    }
 
     ctx.drawImage(img,
                   x_tile, y_tile,
                   this.tile_size_x, this.tile_size_y,
                   0.0, 0.0,
                   this.tile_size_x * this.scale, this.tile_size_y * this.scale);
-    // Render text
-    ctx.textAlign = "center";
-    ctx.fillText(this.name, (this.tile_size_x * this.scale) / 2.0, 20.0);
 
     ctx.restore();
   }

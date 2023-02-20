@@ -15,9 +15,11 @@ function main_render_loop() {
 
 function init_menu() {
   World.create_room("room_1", "imgs/mezeus-silent-hill.jpg", 0.86);
-  World.current_user = World.add_user_to_room("room_1",
+  World.current_user = World.add_user_to_room("",
+                                              "room_1",
                                               0,
                                               0,
+                                              "none",
                                               "imgs/tileset.png",
                                               4.0,
                                               43, 43,
@@ -119,6 +121,7 @@ socket.addEventListener('message', (event) => {
                                                room_data.name,
                                                room_data.users[i].id,
                                                room_data.users[i].position,
+                                               room_data.users[i].style,
                                                IMG_DIRS[room_data.users[i].style],
                                                2.0,
                                                43, 43,
@@ -149,6 +152,7 @@ socket.addEventListener('message', (event) => {
                            World.current_room,
                            msg_obj.user_id,
                            msg_obj.position_x,
+                           room_data.users[i].style,
                            IMG_DIRS[msg_obj.style],
                            2.0,
                            43, 43,
