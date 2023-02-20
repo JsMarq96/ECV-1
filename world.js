@@ -34,6 +34,12 @@ var World = {
     // Draw the background of the current room
     World.render_background(ctx, World.room_backgrounds[World.current_room]);
 
+    ctx.textAlign = "center";
+    ctx.font = "90px Roboto";
+    ctx.fillStyle = "#5a65a1";
+    ctx.fillText("ROOMs", 0, -30);
+
+
     var now = performance.now();
     var elapsed_time = (now - World.last_time) / 1000;
     World.last_time = now;
@@ -109,7 +115,7 @@ var World = {
                     274 / 2, 277 / 2);
       ctx.textAlign = "center";
       ctx.font = "25px Roboto";
-      ctx.fillStyle = STYLE_COLORS['off-black'];
+      ctx.fillStyle = STYLE_COLORS['off-white'];
       ctx.fillText("To " + doors[i].to, 0, -60);
       ctx.restore();
     }

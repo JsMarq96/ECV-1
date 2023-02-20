@@ -14,7 +14,7 @@ function main_render_loop() {
 }
 
 function init_menu() {
-  World.create_room("room_1", "imgs/mezeus-silent-hill.jpg", 0.86, []);
+  World.create_room("room_1", "imgs/jainine-heese-lobby.png", 3.06, []);
   World.current_user = World.add_user_to_room("",
                                               "room_1",
                                               0,
