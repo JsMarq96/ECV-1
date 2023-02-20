@@ -37,19 +37,16 @@ function init_menu() {
 // ============================
 
 function log_in() {
-  var key = name_input.value + '_' + pass_input.value;
+  var key = md5(name_input.value + '_' + pass_input.value);
   var login_request = {'type':'login', 'name': name_input.value, 'data': key, 'style':color_select.value};
   socket.send(JSON.stringify(login_request));
-  console.log("Send login");
+  console.log("Send login", login_request);
   register_button.disabled = false;
   login_button.disabled = false;
-
-  login_area.style.display = "none";
-  chat_area.style.display = "block";
 }
 
 function register() {
-  var key = name_input.value + '_' + pass_input.value;
+  var key = md5(name_input.value + '_' + pass_input.value);
   var register_request = {'type':'register', 'data': key};
   socket.send(JSON.stringify(register_request));
   console.log("Send register");
@@ -84,6 +81,12 @@ document.addEventListener("keydown", function(event) {
     }
   }
 });
+
+window.onfocus = function(e) {
+  for(var i = 0; i < World.objects[World.current_room].length; i++) {
+    World.objects[World.current_room][i].position_x = World.objects[World.current_room][i].move_marker;
+  }
+}
 
 canvas.onclick = function(e) {
   // When you click the canvas, first check if its in door, if not, move towards
@@ -122,6 +125,11 @@ socket.addEventListener('message', (event) => {
 
   if (msg_obj.type.localeCompare("logged_in") == 0) {
     // Get the room and the data
+
+    // Remove the login & show the chat area
+    login_area.style.display = "none";
+    chat_area.style.display = "block";
+
     var room_data = msg_obj['room'];
     World.create_room(room_data.name,
                       room_data.back_img,
@@ -225,28 +233,36 @@ socket.addEventListener('message', (event) => {
         break;
       }
     }
-
   } else if (msg_obj.type.localeCompare("login_error") == 0) {
     register_button.disabled = false;
     login_button.disabled = false;
 
-    alert("Error loggin in");
+    alert(msg_obj.msg);
   } else if (msg_obj.type.localeCompare("register_error") == 0) {
     register_button.disabled = false;
     login_button.disabled = false;
 
-    alert("Error registering in");
+    alert("Error registering in: the user is already in the system");
   } else if (msg_obj.type.localeCompare("registered_in") == 0) {
     register_button.disabled = false;
     login_button.disabled = false;
 
-    alert("User registered in");
+    alert("User registered correctly!");
   } else if (msg_obj.type.localeCompare("user_gone_to_room") == 0) {
     for(var i = 0; i < World.objects[World.current_room].length; i++) {
       if (World.objects[World.current_room][i].id.localeCompare(msg_obj.user_id) == 0) {
         World.objects[World.current_room].splice(i, 1);
         add_bubble_notification(msg_obj.user_name + " gone to " + msg_obj.new_room);
         break;
+      }
+    }
+  } else if (msg_obj.type.localeCompare("updated_positions") == 0) {
+    // Update the positions of the database
+    for(var i = 0; i < msg_obj.users.length; i++) {
+      for(var j = 0; j < World.objects[World.current_room]; j++) {
+        if (World.objects[World.current_room][j].id.localeCompare(msg_obj.users[i].id) == 0) {
+
+        }
       }
     }
   }
