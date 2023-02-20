@@ -100,8 +100,8 @@ var user_template = {
 
     // Invert based on direction
     if (this.facing_left) {
-      ctx.fillText(this.name, 22 + (4.0 * this.tile_size_x * this.scale) / 3.0, -10.0);
-      ctx.translate(4.0 * this.tile_size_x, 0.0);
+      ctx.fillText(this.name, -2.0 * this.tile_size_x + (this.tile_size_x * this.scale), -10.0);
+      ctx.translate(this.tile_size_x, 0.0);
       ctx.scale(-1, 1);
     } else {
       ctx.fillText(this.name, (this.tile_size_x * this.scale) / 2.0, -10.0);

@@ -1,7 +1,7 @@
 var canvas = document.getElementById("main_canvas");
 
 var MOVEMENT_SPEED = 40.0;
-var DELTA = 2;
+var DELTA = 1;
 
 function main_render_loop() {
   if (logged_in) {

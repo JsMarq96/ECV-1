@@ -118,7 +118,6 @@ var World = {
   render_background: function(ctx, room) {
     var image = get_image(room.img_url);
     var size = [image.width * room.scale, image.height * room.scale];
-    console.log(image);
     ctx.drawImage(image, -size[0] / 2, -size[1] / 2, size[0], size[1]);
   },
 
