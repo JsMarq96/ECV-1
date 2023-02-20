@@ -88,6 +88,7 @@ document.addEventListener("keydown", function(event) {
 canvas.onclick = function(e) {
   // When you click the canvas, first check if its in door, if not, move towards
   World.update_position(get_world_cursor_position(e).x);
+  console.log(get_world_cursor_position(e));
 }
 
 register_button.onclick = register;
@@ -135,6 +136,7 @@ socket.addEventListener('message', (event) => {
       }
     }
 
+    add_bubble_notification("Welcome to the lobby, " + World.current_user.name);
     if (bubble.length > 1) {
       add_bubble_notification(bubble + " are in this room, say hi!");
     }
@@ -152,7 +154,7 @@ socket.addEventListener('message', (event) => {
                            World.current_room,
                            msg_obj.user_id,
                            msg_obj.position_x,
-                           room_data.users[i].style,
+                           msg_obj.style,
                            IMG_DIRS[msg_obj.style],
                            2.0,
                            43, 43,
