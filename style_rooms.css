@@ -54,10 +54,12 @@
 
 #conversation_area {
     height: calc(100% - 60px - 20px);
-    width: calc(100% - 25px);
+    width: calc(100% - 35px);
     border-style: solid;
     border-radius: 20px;
     margin: 10px;
+    overflow-y: hidden;
+    padding: 5px;
 }
 
 #chat_input {
@@ -87,4 +89,85 @@
     font-size: 30px;
     border-radius: 20px;
     border-style: none;
+}
+
+
+/* MESSAGE AREA  */
+#text-input {
+    margin: 10px;
+
+    width: calc(100% - 90px);
+    height: calc(100% - 20px);
+    border-radius: 5px;
+    border-style: solid;
+}
+
+#send-button-container {
+    width: 90px;
+    height: 80%;
+}
+
+#send-button-container button {
+    width: 58px;
+    height: 100%;
+    margin: 3px;
+    margin-top: 6px;
+    font-weight: bold;
+    font-size: 30px;
+    border-radius: 20px;
+    border-style: none;
+}
+
+
+.message-container {
+    width: 100%;
+    display: flex;
+}
+
+.message-container:has(.message-from-user) {
+    justify-content: right;
+}
+
+
+.message {
+    max-width: 80%;
+    background-color: azure;
+    min-width: 200px;
+    min-height: 40px;
+    padding: 6px;
+    margin: 6px;
+    margin-bottom: 3px;
+    border-radius: 5px;
+}
+
+.message-sender {
+    font-weight: bold;
+    font-size: 17px;
+}
+
+.message-to-user {
+    background-color: azure;
+}
+
+.message-from-user {
+    background-color: #31B79F;
+    color:#FDFDFD;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+.message-from-user p {
+    text-align: right;
+    padding-right: 5px;
+}
+
+.message-join {
+    text-align: center;
+    margin: auto;
+    background-color: #c4cad2;
+    padding: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
 }

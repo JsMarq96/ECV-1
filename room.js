@@ -3,9 +3,7 @@ var canvas = document.getElementById("main_canvas");
 var MOVEMENT_SPEED = 40.0;
 var DELTA = 2;
 
-
 function main_render_loop() {
-
   if (logged_in) {
     World.render_frame();
   } else {
@@ -34,11 +32,14 @@ function init_menu() {
 
 function log_in() {
   var key = name_input.value + '_' + pass_input.value;
-  var login_request = {'type':'login', 'data': key, 'style':color_select.value};
+  var login_request = {'type':'login', 'name': name_input.value, 'data': key, 'style':color_select.value};
   socket.send(JSON.stringify(login_request));
   console.log("Send login");
   register_button.disabled = false;
   login_button.disabled = false;
+
+  login_area.style.display = "none";
+  chat_area.style.display = "block";
 }
 
 function register() {
@@ -57,7 +58,18 @@ var pass_input = document.getElementById("pass_input");
 var register_button = document.getElementById("register_button");
 var login_button = document.getElementById("login_button");
 var color_select = document.getElementById("color_select");
+var message_input = document.getElementById("text-input");
 var logged_in = false;
+
+document.addEventListener("keydown", function(event) {
+  if (event.keyCode === 13) {
+    // Enter pressed
+    if (message_input.value.length > 2) {
+      World.send_message(message_input.value);
+      message_input.value = "";
+    }
+  }
+});
 
 register_button.onclick = register;
 login_button.onclick = log_in;
@@ -79,6 +91,8 @@ socket.addEventListener('message', (event) => {
     World.create_room(room_data.name, room_data.back_img, 0.86);
     World.current_room = room_data.name;
 
+    var bubble = "";
+
     for(var i = 0; i < room_data.users.length; i++) {
       var position_id = World.add_user_to_room(room_data.name,
                                                room_data.users[i].id,
@@ -88,17 +102,23 @@ socket.addEventListener('message', (event) => {
                                                43, 43,
                                                0,
                                                [1, 2, 3, 4, 5, 6, 7]);
-      // Add the index
+      // Add a reference to the current user
       if (room_data.users[i].id.localeCompare(msg_obj.id) == 0) {
         World.current_user = World.objects[room_data.name][position_id];
-        console.log(World.current_user, "fef");
+      } else {
+        bubble += room_data.users[i].name + ", ";
       }
+    }
+
+    if (bubble.length > 1) {
+      add_bubble_notification(bubble + " are in this room, say hi!");
     }
 
     logged_in = true;
   } else if (msg_obj.type.localeCompare("new_message") == 0) {
     // Get the room and the data
-    console.log(msg_obj.message);
+    console.log(msg_obj);
+    add_message(msg_obj.from, msg_obj.from_name, msg_obj.message, msg_obj.from.localeCompare(World.current_user.id) == 0);
   } else if (msg_obj.type.localeCompare("change_room") == 0) {
     // Get the room data
   }  else if (msg_obj.type.localeCompare("new_character") == 0) {
@@ -111,6 +131,7 @@ socket.addEventListener('message', (event) => {
                            43, 43,
                            0,
                            [1, 2, 3, 4, 5, 6, 7]);
+    add_bubble_notification(msg_obj.name + " just entered this room, say hi!");
 
   } else if (msg_obj.type.localeCompare("move_character") == 0) {
     for(var i = 0; i < World.objects[World.current_room].length; i++) {
@@ -123,6 +144,7 @@ socket.addEventListener('message', (event) => {
     for(var i = 0; i < World.objects[World.current_room].length; i++) {
       if (World.objects[World.current_room][i].id.localeCompare(msg_obj.user_id) == 0) {
         World.objects[World.current_room].splice(i, 1);
+        add_bubble_notification(msg_obj.name + " exited!");
         break;
       }
     }
