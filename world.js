@@ -106,9 +106,10 @@ var World = {
     this.objects[name] = [];
   },
 
-  add_user_to_room: function (room_name, server_id, position_x, img, scale, tile_size_x, tile_size_y, tile_standby, tile_walk_anim) {
+  add_user_to_room: function (name, room_name, server_id, position_x, img, scale, tile_size_x, tile_size_y, tile_standby, tile_walk_anim) {
     // Fill the user strucutre
     var new_user = Object.assign({}, user_template);
+    new_user.name = name;
     new_user.position_x = position_x;
     new_user.id = server_id;
     new_user.scale = scale;

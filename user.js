@@ -49,7 +49,7 @@ var user_template = {
   tile_size_y: 0,
   tile_standby: 0,
   tile_walk: [],
-
+  name: "",
   update: function(elapsed_time) {
     // Move the character towards the designated point, until is close enough
     if (Math.abs(this.position_x - this.move_marker) > DELTA) {
@@ -96,6 +96,10 @@ var user_template = {
                   this.tile_size_x, this.tile_size_y,
                   0.0, 0.0,
                   this.tile_size_x * this.scale, this.tile_size_y * this.scale);
+    // Render text
+    ctx.textAlign = "center";
+    ctx.fillText(this.name, (this.tile_size_x * this.scale) / 2.0, 20.0);
+
     ctx.restore();
   }
 };

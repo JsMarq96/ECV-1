@@ -115,7 +115,8 @@ socket.addEventListener('message', (event) => {
     var bubble = "";
 
     for(var i = 0; i < room_data.users.length; i++) {
-      var position_id = World.add_user_to_room(room_data.name,
+      var position_id = World.add_user_to_room(room_data.users[i].name,
+                                               room_data.name,
                                                room_data.users[i].id,
                                                room_data.users[i].position,
                                                IMG_DIRS[room_data.users[i].style],
@@ -144,7 +145,8 @@ socket.addEventListener('message', (event) => {
     // Get the room data
   }  else if (msg_obj.type.localeCompare("new_character") == 0) {
     // Add the character to the room
-    World.add_user_to_room(World.current_room,
+    World.add_user_to_room(msg_obj.name,
+                           World.current_room,
                            msg_obj.user_id,
                            msg_obj.position_x,
                            IMG_DIRS[msg_obj.style],
