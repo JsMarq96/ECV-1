@@ -30,6 +30,10 @@ function init_menu() {
   main_render_loop();
 }
 
+// ============================
+// CLIENT EVENTS ==============
+// ============================
+
 function log_in() {
   var key = name_input.value + '_' + pass_input.value;
   var login_request = {'type':'login', 'name': name_input.value, 'data': key, 'style':color_select.value};
@@ -49,6 +53,14 @@ function register() {
   console.log("Send register");
   register_button.disabled = false;
   login_button.disabled = false;
+}
+
+function get_world_cursor_position(event) {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  return {'x':x  - (-World.camera_pos.x + canvas.width / 2), 'y': y - (-World.camera_pos.y + canvas.height / 2)};
 }
 
 var login_area = document.getElementById("login_area");
@@ -71,8 +83,17 @@ document.addEventListener("keydown", function(event) {
   }
 });
 
+canvas.onclick = function(e) {
+  // When you click the canvas, first check if its in door, if not, move towards
+  World.update_position(get_world_cursor_position(e).x);
+}
+
 register_button.onclick = register;
 login_button.onclick = log_in;
+
+// ============================
+// SERVER MESSAGES ============
+// ============================
 
 const socket = new WebSocket('ws://localhost:9035/messages');
 socket.addEventListener('open', (event) => {
