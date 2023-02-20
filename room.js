@@ -93,10 +93,11 @@ canvas.onclick = function(e) {
   const doow_height = 277 / 2;
   var doors = World.room_backgrounds[World.current_room].doors;
   for(var i = 0; i < doors.length; i++) {
-    console.log(get_world_cursor_position(e), doors[i].pos_x, doors[i].pos_x + door_width);
-    if (cursor_pos.x > (doors[i].pos_x - door_width / 2) && cursor_pos.x < (doors[i].pos_x + door_width / 2)) {
-      console.log("DOOOOR", doors[i]);
-      World.move_to_room(doors[i].to)
+
+    if (cursor_pos.x > (doors[i].pos_x - 31) && cursor_pos.x < (doors[i].pos_x + 32)) {
+      if (cursor_pos.y < -38 && cursor_pos.y > -113) {
+        World.move_to_room(doors[i].to)
+      }
     }
   }
 }
@@ -122,7 +123,10 @@ socket.addEventListener('message', (event) => {
   if (msg_obj.type.localeCompare("logged_in") == 0) {
     // Get the room and the data
     var room_data = msg_obj['room'];
-    World.create_room(room_data.name, room_data.back_img, 0.86, room_data.doors);
+    World.create_room(room_data.name,
+                      room_data.back_img,
+                      1.5,
+                      room_data.doors);
     World.current_room = room_data.name;
 
     var bubble = "";
@@ -158,10 +162,13 @@ socket.addEventListener('message', (event) => {
     add_message(msg_obj.from, msg_obj.from_name, msg_obj.message, msg_obj.from.localeCompare(World.current_user.id) == 0);
   } else if (msg_obj.type.localeCompare("move_to_room") == 0) {
     // Clean chat
-    messa_box.innerHTLM = "";
+    message_box.innerHTML = "";
     // Get the room data
     var room_data = msg_obj['new_room'];
-    World.create_room(room_data.name, room_data.back_img, 0.86, room_data.doors);
+    World.create_room(room_data.name,
+                      room_data.back_img,
+                      1.5,
+                      room_data.doors);
     World.current_room = room_data.name;
     console.log(room_data);
 
@@ -234,6 +241,13 @@ socket.addEventListener('message', (event) => {
     login_button.disabled = false;
 
     alert("User registered in");
+  } else if (msg_obj.type.localeCompare("user_gone_to_room") == 0) {
+    for(var i = 0; i < World.objects[World.current_room].length; i++) {
+      if (World.objects[World.current_room][i].id.localeCompare(msg_obj.user_id) == 0) {
+        World.objects[World.current_room].splice(i, 1);
+        add_bubble_notification(msg_obj.user_name + " gone to " + msg_obj.new_room);
+        break;
+      }
+    }
   }
-
   });

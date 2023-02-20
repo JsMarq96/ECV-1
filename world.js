@@ -109,6 +109,7 @@ var World = {
                     274 / 2, 277 / 2);
       ctx.textAlign = "center";
       ctx.font = "25px Roboto";
+      ctx.fillStyle = STYLE_COLORS['off-black'];
       ctx.fillText("To " + doors[i].to, 0, -60);
       ctx.restore();
     }
@@ -138,6 +139,7 @@ var World = {
     new_user.name = name;
     new_user.style = style;
     new_user.position_x = position_x;
+    new_user.position_y = 62;
     new_user.id = server_id;
     new_user.scale = scale;
     new_user.img = img;

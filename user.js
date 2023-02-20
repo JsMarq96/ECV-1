@@ -95,22 +95,23 @@ var user_template = {
 
     // Render text before inverting
     ctx.textAlign = "center";
-    ctx.font = "25px Roboto";
+    ctx.font = "30px Roboto";
     ctx.fillStyle = STYLE_COLORS[this.style];
 
     // Invert based on direction
     if (this.facing_left) {
-      ctx.fillText(this.name, -2.0 * this.tile_size_x + (this.tile_size_x * this.scale), -10.0);
+      ctx.fillText(this.name,10 +  -1.0 * (this.tile_size_x * this.scale) + (this.tile_size_x * this.scale), -10.0);
       ctx.translate(this.tile_size_x, 0.0);
       ctx.scale(-1, 1);
     } else {
-      ctx.fillText(this.name, (this.tile_size_x * this.scale) / 2.0, -10.0);
+      ctx.fillText(this.name, 25.0, -10.0);
     }
 
+    const size = this.tile_size_x * this.scale * 0.5;
     ctx.drawImage(img,
                   x_tile, y_tile,
                   this.tile_size_x, this.tile_size_y,
-                  0.0, 0.0,
+                  -size * 0.5, 0.0,
                   this.tile_size_x * this.scale, this.tile_size_y * this.scale);
 
     ctx.restore();
