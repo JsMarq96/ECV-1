@@ -14,15 +14,6 @@ var CHAT = {
   // CLIENT MESSAGING FUNCTIONS
   // ===================================
 
-  get_private_room_id: function(username, recipient_username) {
-    var room_id = '';
-    if (username[0] > recipient_username[0]) {
-      room_id += username + ' & ' + recipient_username;
-    } else {
-      room_id += recipient_username + ' & ' + username;
-    }
-    return room_id;
-  },
 
   add_message: function (sender_id, sender_name, message) {
     var bubble_class = "message-to-user"
@@ -45,13 +36,6 @@ var CHAT = {
     var text_paragraph = document.createElement('p');
     text_paragraph.classList.add('message-content');
     text_paragraph.innerHTML = message;
-
-    // Add ocnlick for private chat
-    if (sender_name.localeCompare(CHAT.user_name) != 0 && sender_id != 0) {
-      message_buble.onclick = function (event) {
-        CHAT.add_a_connection(CHAT.get_private_room_id(CHAT.user_name, sender_name), true, sender_id, CHAT.current_conversation);
-      };
-    }
 
     // Merge all the structure & submit to the DOM
     message_buble.appendChild(sender_paragraph);
@@ -88,11 +72,12 @@ var CHAT = {
     msg.content = CHAT.text_input.value;
     msg.user_id = CHAT.current_user;
 
-    if (!CHAT.if_is_private[CHAT.current_conversation].private) {
-      CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg));
-    } else {
-      CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg), [CHAT.if_is_private[CHAT.current_conversation.id]]);
-    }
+    CHAT.ws.send(JSON.stringify(msg));
+    //if (!CHAT.if_is_private[CHAT.current_conversation].private) {
+            //CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg));
+    //} else {
+      ///CHAT.server_connections[CHAT.current_conversation].sendMessage(JSON.stringify(msg), [CHAT.if_is_private[CHAT.current_conversation.id]]);
+    //}
     CHAT.add_message(0, CHAT.user_name, CHAT.text_input.value);
     CHAT.text_input.value = "";
 

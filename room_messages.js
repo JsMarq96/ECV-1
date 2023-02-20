@@ -1,7 +1,7 @@
 var message_box = document.getElementById("conversation_area");
 
 
-function add_message(sender_id, sender_name, message, from_user) {
+function add_message(sender_id, sender_name, message, from_user, style) {
   var bubble_class = "message-to-user"
   if (from_user) {
     bubble_class = "message-from-user";
@@ -13,6 +13,7 @@ function add_message(sender_id, sender_name, message, from_user) {
   var message_buble = document.createElement('div');
   message_buble.classList.add('message');
   message_buble.classList.add(bubble_class);
+  message_buble.classList.add('message-style-' + style);
 
   // Create the paragraphs
   var sender_paragraph = document.createElement('p');

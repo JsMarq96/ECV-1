@@ -167,7 +167,11 @@ socket.addEventListener('message', (event) => {
   } else if (msg_obj.type.localeCompare("new_message") == 0) {
     // Get the room and the data
     console.log(msg_obj);
-    add_message(msg_obj.from, msg_obj.from_name, msg_obj.message, msg_obj.from.localeCompare(World.current_user.id) == 0);
+    add_message(msg_obj.from,
+                msg_obj.from_name,
+                msg_obj.message,
+                msg_obj.from.localeCompare(World.current_user.id) == 0,
+                msg_obj.style);
   } else if (msg_obj.type.localeCompare("move_to_room") == 0) {
     // Clean chat
     message_box.innerHTML = "";
