@@ -14,7 +14,7 @@ function main_render_loop() {
 }
 
 function init_menu() {
-  World.create_room("room_1", "imgs/mezeus-silent-hill.jpg", 0.86);
+  World.create_room("room_1", "imgs/mezeus-silent-hill.jpg", 0.86, []);
   World.current_user = World.add_user_to_room("",
                                               "room_1",
                                               0,
@@ -88,7 +88,16 @@ document.addEventListener("keydown", function(event) {
 canvas.onclick = function(e) {
   // When you click the canvas, first check if its in door, if not, move towards
   World.update_position(get_world_cursor_position(e).x);
-  console.log(get_world_cursor_position(e));
+  var cursor_pos = get_world_cursor_position(e);
+  const door_width = 274 / 2;
+  const doow_height = 277 / 2;
+  var doors = World.room_backgrounds[World.current_room].doors;
+  for(var i = 0; i < doors.length; i++) {
+    console.log(get_world_cursor_position(e), doors[i].pos_x, doors[i].pos_x + door_width);
+    if (cursor_pos.x > (doors[i].pos_x - door_width / 2) && cursor_pos.x < (doors[i].pos_x + door_width / 2)) {
+      console.log("DOOOOR");
+    }
+  }
 }
 
 register_button.onclick = register;
@@ -112,7 +121,7 @@ socket.addEventListener('message', (event) => {
   if (msg_obj.type.localeCompare("logged_in") == 0) {
     // Get the room and the data
     var room_data = msg_obj['room'];
-    World.create_room(room_data.name, room_data.back_img, 0.86);
+    World.create_room(room_data.name, room_data.back_img, 0.86, room_data.doors);
     World.current_room = room_data.name;
 
     var bubble = "";

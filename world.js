@@ -68,8 +68,12 @@ var World = {
     World.camera_pos.x = LERP(0.01, curr_camera_coords, ideal_camera_pos);
     ctx.translate(-World.camera_pos.x + canvas.width / 2, -World.camera_pos.y + canvas.height / 2);
 
+    // Check if there is an overlap between the doors
+
+
     // Draw the background of the current room
     World.room_backgrounds[World.current_room].render(ctx);
+    World.render_doors(ctx, World.room_backgrounds[World.current_room].doors);
 
     // Render each object
     var time = performance.now();
@@ -91,8 +95,29 @@ var World = {
     ctx.resetTransform();
   },
 
-  create_room: function(name, image_url, scale) {
+  render_doors: function(ctx, doors) {
+    const door_img = get_image("imgs/door.png");
+    const door_high_img = get_image("imgs/door_highlated.png");
+
+    for(var i = 0; i < doors.length; i++) {
+      ctx.save();
+      ctx.translate(doors[i].pos_x, doors[i].pos_y);
+      ctx.drawImage(door_img,
+                    0,0,
+                    274, 277,
+                    - 274/4, - 277/4,
+                    274 / 2, 277 / 2);
+      ctx.textAlign = "center";
+      ctx.font = "25px Roboto";
+      ctx.fillText("To " + doors[i].to, 0, -60);
+      ctx.restore();
+    }
+
+  },
+
+  create_room: function(name, image_url, scale, doors) {
     var new_room = {
+      doors: doors,
       img_url: image_url,
       scale: scale,
       render: function(ctx) {
